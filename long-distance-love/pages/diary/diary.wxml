@@ -1,0 +1,200 @@
+<!--pages/diary/diary.wxml-->
+<view class="container">
+  <!-- 头部标题 -->
+  <view class="header">
+    <text class="header-title">我们的日记</text>
+    <text class="header-subtitle">记录每一个美好时刻</text>
+  </view>
+
+  <!-- 日记列表 -->
+  <scroll-view class="diary-list" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onRefresh">
+    <view class="diary-item card" wx:for="{{diaries}}" wx:key="id" bindtap="viewDiary" data-id="{{item.id}}">
+      <view class="diary-header">
+        <view class="diary-date">
+          <text class="date-day">{{item.day}}</text>
+          <text class="date-month">{{item.month}}</text>
+        </view>
+        <view class="diary-info">
+          <text class="diary-title">{{item.title}}</text>
+          <text class="diary-preview">{{item.preview}}</text>
+          <view class="diary-meta">
+            <text class="diary-author">{{item.author}}</text>
+            <text class="diary-time">{{item.timeText}}</text>
+          </view>
+        </view>
+        <view class="diary-mood">
+          <text class="mood-icon">{{item.mood}}</text>
+        </view>
+      </view>
+      
+      <!-- 日记图片预览 -->
+      <view class="diary-images" wx:if="{{item.images && item.images.length > 0}}">
+        <image class="diary-image" 
+               src="{{img}}" 
+               mode="aspectFill" 
+               wx:for="{{item.images}}" 
+               wx:for-item="img" 
+               wx:key="*this"
+               bindtap="previewImage" 
+               data-src="{{img}}"
+               data-urls="{{item.images}}"></image>
+      </view>
+      
+      <!-- 互动区域 -->
+      <view class="diary-actions">
+        <view class="action-item" bindtap="likeDiary" data-id="{{item.id}}">
+          <text class="action-icon {{item.isLiked ? 'liked' : ''}}">{{item.isLiked ? '❤️' : '🤍'}}</text>
+          <text class="action-text">{{item.likes}}</text>
+        </view>
+        <view class="action-item" bindtap="commentDiary" data-id="{{item.id}}">
+          <text class="action-icon">💬</text>
+          <text class="action-text">{{item.comments}}</text>
+        </view>
+        <view class="action-item" bindtap="shareDiary" data-id="{{item.id}}">
+          <text class="action-icon">📤</text>
+          <text class="action-text">分享</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{diaries.length === 0}}">
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">还没有日记哦</text>
+      <text class="empty-tip">点击右下角按钮开始写日记吧</text>
+    </view>
+  </scroll-view>
+
+  <!-- 写日记按钮 -->
+  <view class="fab" bindtap="writeDiary">
+    <text class="fab-icon">✏️</text>
+  </view>
+</view>
+
+<!-- 写日记模态框 -->
+<view class="diary-modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">{{isEditing ? '编辑日记' : '写日记'}}</text>
+      <view class="modal-close" bindtap="closeModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true">
+      <!-- 日记标题 -->
+      <view class="input-group">
+        <text class="input-label">标题</text>
+        <input class="input-field" 
+               placeholder="给这篇日记起个标题吧" 
+               value="{{currentDiary.title}}" 
+               bindinput="onTitleInput"/>
+      </view>
+      
+      <!-- 心情选择 -->
+      <view class="input-group">
+        <text class="input-label">今天的心情</text>
+        <view class="mood-selector">
+          <view class="mood-item {{currentDiary.mood === item ? 'selected' : ''}}" 
+                wx:for="{{moods}}" 
+                wx:key="*this" 
+                bindtap="selectMood" 
+                data-mood="{{item}}">
+            <text class="mood-emoji">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 日记内容 -->
+      <view class="input-group">
+        <text class="input-label">内容</text>
+        <textarea class="textarea-field" 
+                  placeholder="记录今天发生的美好事情..." 
+                  value="{{currentDiary.content}}" 
+                  bindinput="onContentInput"
+                  maxlength="1000"
+                  show-confirm-bar="false"></textarea>
+        <text class="char-count">{{currentDiary.content.length}}/1000</text>
+      </view>
+      
+      <!-- 图片上传 -->
+      <view class="input-group">
+        <text class="input-label">添加图片</text>
+        <view class="image-upload">
+          <view class="uploaded-images" wx:if="{{currentDiary.images.length > 0}}">
+            <view class="uploaded-item" wx:for="{{currentDiary.images}}" wx:key="*this">
+              <image class="uploaded-image" src="{{item}}" mode="aspectFill"></image>
+              <view class="delete-image" bindtap="deleteImage" data-index="{{index}}">
+                <text class="delete-icon">✕</text>
+              </view>
+            </view>
+          </view>
+          <view class="upload-btn" bindtap="chooseImages" wx:if="{{currentDiary.images.length < 9}}">
+            <text class="upload-icon">📷</text>
+            <text class="upload-text">添加图片</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="closeModal">取消</button>
+      <button class="btn-primary" bindtap="saveDiary">{{isEditing ? '保存' : '发布'}}</button>
+    </view>
+  </view>
+</view>
+
+<!-- 日记详情模态框 -->
+<view class="detail-modal" wx:if="{{showDetailModal}}">
+  <view class="detail-content">
+    <view class="detail-header">
+      <view class="detail-close" bindtap="closeDetailModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <scroll-view class="detail-body" scroll-y="true">
+      <view class="detail-info">
+        <text class="detail-title">{{selectedDiary.title}}</text>
+        <view class="detail-meta">
+          <text class="detail-author">{{selectedDiary.author}}</text>
+          <text class="detail-date">{{selectedDiary.fullDate}}</text>
+          <text class="detail-mood">{{selectedDiary.mood}}</text>
+        </view>
+      </view>
+      
+      <view class="detail-content-text">
+        <text class="content-text">{{selectedDiary.content}}</text>
+      </view>
+      
+      <view class="detail-images" wx:if="{{selectedDiary.images && selectedDiary.images.length > 0}}">
+        <image class="detail-image" 
+               src="{{img}}" 
+               mode="aspectFit" 
+               wx:for="{{selectedDiary.images}}" 
+               wx:for-item="img" 
+               wx:key="*this"
+               bindtap="previewImage" 
+               data-src="{{img}}"
+               data-urls="{{selectedDiary.images}}"></image>
+      </view>
+    </scroll-view>
+    
+    <view class="detail-footer">
+      <view class="detail-actions">
+        <view class="action-item" bindtap="likeDiary" data-id="{{selectedDiary.id}}">
+          <text class="action-icon {{selectedDiary.isLiked ? 'liked' : ''}}">{{selectedDiary.isLiked ? '❤️' : '🤍'}}</text>
+          <text class="action-text">{{selectedDiary.likes}}</text>
+        </view>
+        <view class="action-item" bindtap="commentDiary" data-id="{{selectedDiary.id}}">
+          <text class="action-icon">💬</text>
+          <text class="action-text">评论</text>
+        </view>
+        <view class="action-item" bindtap="editDiary" data-id="{{selectedDiary.id}}">
+          <text class="action-icon">✏️</text>
+          <text class="action-text">编辑</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,199 @@
+<!--pages/photo/photo.wxml-->
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <text class="header-title">我们的相册</text>
+    <text class="header-subtitle">珍藏每一个美好瞬间</text>
+  </view>
+
+  <!-- 相册分类 -->
+  <view class="category-tabs">
+    <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="all">
+      <text class="tab-text">全部</text>
+    </view>
+    <view class="tab-item {{currentTab === 'selfie' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="selfie">
+      <text class="tab-text">自拍</text>
+    </view>
+    <view class="tab-item {{currentTab === 'together' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="together">
+      <text class="tab-text">合照</text>
+    </view>
+    <view class="tab-item {{currentTab === 'gift' ? 'active' : ''}}" 
+          bindtap="switchTab" 
+          data-tab="gift">
+      <text class="tab-text">礼物</text>
+    </view>
+  </view>
+
+  <!-- 照片网格 -->
+  <scroll-view class="photo-grid" scroll-y="true" refresher-enabled="true" bindrefresherrefresh="onRefresh">
+    <view class="grid-container">
+      <view class="photo-item" 
+            wx:for="{{filteredPhotos}}" 
+            wx:key="id" 
+            bindtap="previewPhoto" 
+            data-index="{{index}}">
+        <image class="photo-image" 
+               src="{{item.url}}" 
+               mode="aspectFill" 
+               lazy-load="true"></image>
+        <view class="photo-overlay">
+          <view class="photo-info">
+            <text class="photo-date">{{item.dateText}}</text>
+            <text class="photo-category">{{item.categoryText}}</text>
+          </view>
+          <view class="photo-actions">
+            <view class="action-btn" bindtap="likePhoto" data-id="{{item.id}}" catchtap="true">
+              <text class="action-icon {{item.isLiked ? 'liked' : ''}}">{{item.isLiked ? '❤️' : '🤍'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 添加照片按钮 -->
+      <view class="add-photo-btn" bindtap="addPhoto">
+        <text class="add-icon">📷</text>
+        <text class="add-text">添加照片</text>
+      </view>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{filteredPhotos.length === 0}}">
+      <text class="empty-icon">📸</text>
+      <text class="empty-text">还没有照片哦</text>
+      <text class="empty-tip">点击添加按钮上传第一张照片吧</text>
+    </view>
+  </scroll-view>
+</view>
+
+<!-- 添加照片模态框 -->
+<view class="add-modal" wx:if="{{showAddModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">添加照片</text>
+      <view class="modal-close" bindtap="closeAddModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <view class="modal-body">
+      <!-- 照片预览 -->
+      <view class="photo-preview" wx:if="{{newPhoto.url}}">
+        <image class="preview-image" src="{{newPhoto.url}}" mode="aspectFit"></image>
+      </view>
+      
+      <!-- 选择照片 -->
+      <view class="photo-selector" wx:if="{{!newPhoto.url}}">
+        <view class="selector-btn" bindtap="chooseFromAlbum">
+          <text class="selector-icon">🖼️</text>
+          <text class="selector-text">从相册选择</text>
+        </view>
+        <view class="selector-btn" bindtap="takePhoto">
+          <text class="selector-icon">📷</text>
+          <text class="selector-text">拍照</text>
+        </view>
+      </view>
+      
+      <!-- 照片信息 -->
+      <view class="photo-form" wx:if="{{newPhoto.url}}">
+        <view class="input-group">
+          <text class="input-label">照片描述</text>
+          <input class="input-field" 
+                 placeholder="为这张照片写个描述吧" 
+                 value="{{newPhoto.description}}" 
+                 bindinput="onDescriptionInput"/>
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">分类</text>
+          <view class="category-selector">
+            <view class="category-option {{newPhoto.category === item.value ? 'selected' : ''}}" 
+                  wx:for="{{categories}}" 
+                  wx:key="value" 
+                  bindtap="selectCategory" 
+                  data-category="{{item.value}}">
+              <text class="category-icon">{{item.icon}}</text>
+              <text class="category-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="input-group">
+          <text class="input-label">拍摄日期</text>
+          <picker mode="date" 
+                  end="{{today}}" 
+                  value="{{newPhoto.date}}" 
+                  bindchange="onDateChange">
+            <view class="date-picker">
+              <text class="date-text">{{newPhoto.date || '请选择日期'}}</text>
+              <text class="picker-arrow">📅</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+    
+    <view class="modal-footer" wx:if="{{newPhoto.url}}">
+      <button class="btn-secondary" bindtap="closeAddModal">取消</button>
+      <button class="btn-primary" bindtap="savePhoto">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 照片详情模态框 -->
+<view class="detail-modal" wx:if="{{showDetailModal}}">
+  <view class="detail-content">
+    <view class="detail-header">
+      <view class="detail-close" bindtap="closeDetailModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <swiper class="photo-swiper" 
+            current="{{currentPhotoIndex}}" 
+            bindchange="onSwiperChange"
+            indicator-dots="{{filteredPhotos.length > 1}}"
+            indicator-color="rgba(255,255,255,0.5)"
+            indicator-active-color="#ff6b9d">
+      <swiper-item wx:for="{{filteredPhotos}}" wx:key="id">
+        <view class="swiper-item">
+          <image class="detail-image" 
+                 src="{{item.url}}" 
+                 mode="aspectFit" 
+                 bindtap="toggleImageInfo"></image>
+        </view>
+      </swiper-item>
+    </swiper>
+    
+    <!-- 照片信息 -->
+    <view class="photo-detail-info {{showImageInfo ? 'show' : ''}}" wx:if="{{currentPhoto}}">
+      <view class="detail-info-content">
+        <text class="detail-description">{{currentPhoto.description || '暂无描述'}}</text>
+        <view class="detail-meta">
+          <text class="detail-date">{{currentPhoto.fullDate}}</text>
+          <text class="detail-category">{{currentPhoto.categoryText}}</text>
+        </view>
+      </view>
+      
+      <view class="detail-actions">
+        <view class="action-item" bindtap="likePhoto" data-id="{{currentPhoto.id}}">
+          <text class="action-icon {{currentPhoto.isLiked ? 'liked' : ''}}">{{currentPhoto.isLiked ? '❤️' : '🤍'}}</text>
+          <text class="action-text">{{currentPhoto.isLiked ? '已喜欢' : '喜欢'}}</text>
+        </view>
+        <view class="action-item" bindtap="sharePhoto">
+          <text class="action-icon">📤</text>
+          <text class="action-text">分享</text>
+        </view>
+        <view class="action-item" bindtap="deletePhoto" data-id="{{currentPhoto.id}}">
+          <text class="action-icon">🗑️</text>
+          <text class="action-text">删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

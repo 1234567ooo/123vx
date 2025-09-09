@@ -1,0 +1,84 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- 顶部问候区域 -->
+  <view class="greeting-section">
+    <view class="greeting-card card">
+      <view class="flex-row flex-center">
+        <image class="avatar" src="{{userInfo.avatarUrl || ''}}" mode="aspectFill"></image>
+        <view class="heart-container">
+          <text class="heart-icon heart-animation">💕</text>
+        </view>
+        <image class="avatar" src="{{partnerInfo.avatarUrl || ''}}" mode="aspectFill"></image>
+      </view>
+      <view class="greeting-text text-center margin-top">
+        <text class="text-large gradient-text">{{greetingText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 恋爱统计区域 -->
+  <view class="stats-section">
+    <view class="stats-card card">
+      <view class="stats-grid">
+        <view class="stat-item">
+          <view class="stat-number primary-color">{{loveDays}}</view>
+          <view class="stat-label text-small">相爱天数</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-number secondary-color">{{daysUntilMeet}}</view>
+          <view class="stat-label text-small">距离见面</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-number primary-color">{{totalMessages}}</view>
+          <view class="stat-label text-small">聊天消息</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷功能区域 -->
+  <view class="quick-actions">
+    <view class="action-grid">
+      <view class="action-item card" bindtap="goToChat">
+        <view class="action-icon">💬</view>
+        <view class="action-text">发消息</view>
+      </view>
+      <view class="action-item card" bindtap="goToDiary">
+        <view class="action-icon">📝</view>
+        <view class="action-text">写日记</view>
+      </view>
+      <view class="action-item card" bindtap="goToPhoto">
+        <view class="action-icon">📷</view>
+        <view class="action-text">相册</view>
+      </view>
+      <view class="action-item card" bindtap="sendLove">
+        <view class="action-icon">❤️</view>
+        <view class="action-text">发送爱心</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 今日情话 -->
+  <view class="love-quote-section">
+    <view class="love-quote-card card">
+      <view class="quote-header">
+        <text class="quote-title">今日情话</text>
+      </view>
+      <view class="quote-content">
+        <text class="quote-text">{{todayQuote}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设置按钮 -->
+  <view class="settings-section">
+    <button class="btn-secondary" bindtap="goToSettings">设置情侣信息</button>
+  </view>
+</view>
+
+<!-- 爱心飘落动画 -->
+<view class="hearts-container" wx:if="{{showHearts}}">
+  <view class="floating-heart" wx:for="{{hearts}}" wx:key="index" style="left: {{item.left}}%; animation-delay: {{item.delay}}s;">
+    ❤️
+  </view>
+</view>

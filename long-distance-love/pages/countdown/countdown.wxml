@@ -1,0 +1,242 @@
+<!--pages/countdown/countdown.wxml-->
+<view class="container">
+  <!-- 背景装饰 -->
+  <view class="bg-decoration">
+    <view class="heart-bg heart1">💕</view>
+    <view class="heart-bg heart2">💖</view>
+    <view class="heart-bg heart3">💝</view>
+  </view>
+
+  <!-- 主要倒计时区域 -->
+  <view class="countdown-main">
+    <view class="countdown-card card">
+      <view class="countdown-header">
+        <text class="countdown-title">距离见面还有</text>
+        <text class="countdown-subtitle" wx:if="{{meetDate}}">{{meetDateText}}</text>
+      </view>
+      
+      <view class="countdown-display" wx:if="{{meetDate}}">
+        <view class="time-unit">
+          <text class="time-number">{{days}}</text>
+          <text class="time-label">天</text>
+        </view>
+        <view class="time-separator">:</view>
+        <view class="time-unit">
+          <text class="time-number">{{hours}}</text>
+          <text class="time-label">时</text>
+        </view>
+        <view class="time-separator">:</view>
+        <view class="time-unit">
+          <text class="time-number">{{minutes}}</text>
+          <text class="time-label">分</text>
+        </view>
+        <view class="time-separator">:</view>
+        <view class="time-unit">
+          <text class="time-number">{{seconds}}</text>
+          <text class="time-label">秒</text>
+        </view>
+      </view>
+      
+      <!-- 未设置见面日期 -->
+      <view class="no-date" wx:if="{{!meetDate}}">
+        <text class="no-date-icon">📅</text>
+        <text class="no-date-text">还没有设置见面日期哦</text>
+        <button class="btn-primary" bindtap="setMeetDate">设置见面日期</button>
+      </view>
+      
+      <!-- 已经见面了 -->
+      <view class="already-met" wx:if="{{meetDate && days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0}}">
+        <text class="met-icon">🎉</text>
+        <text class="met-text">终于见面啦！</text>
+        <text class="met-subtitle">愿这次相聚美好而难忘</text>
+        <button class="btn-primary" bindtap="setNextMeetDate">设置下次见面</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 恋爱统计 -->
+  <view class="love-stats">
+    <view class="stats-card card">
+      <view class="stats-header">
+        <text class="stats-title">我们的爱情数据</text>
+      </view>
+      <view class="stats-grid">
+        <view class="stat-item">
+          <text class="stat-number primary-color">{{loveDays}}</text>
+          <text class="stat-label">相爱天数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number secondary-color">{{meetCount}}</text>
+          <text class="stat-label">见面次数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number primary-color">{{totalDays}}</text>
+          <text class="stat-label">异地天数</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <view class="action-row">
+      <button class="action-btn" bindtap="setMeetDate">
+        <text class="action-icon">📅</text>
+        <text class="action-text">设置日期</text>
+      </button>
+      <button class="action-btn" bindtap="addMeetRecord">
+        <text class="action-icon">✈️</text>
+        <text class="action-text">记录见面</text>
+      </button>
+      <button class="action-btn" bindtap="shareCountdown">
+        <text class="action-icon">📤</text>
+        <text class="action-text">分享倒计时</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 见面记录 -->
+  <view class="meet-records" wx:if="{{meetRecords.length > 0}}">
+    <view class="records-header">
+      <text class="records-title">见面记录</text>
+    </view>
+    <scroll-view class="records-list" scroll-y="true">
+      <view class="record-item card" wx:for="{{meetRecords}}" wx:key="id">
+        <view class="record-date">
+          <text class="record-day">{{item.day}}</text>
+          <text class="record-month">{{item.month}}</text>
+        </view>
+        <view class="record-info">
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-location">{{item.location}}</text>
+          <text class="record-duration">相聚 {{item.duration}} 天</text>
+        </view>
+        <view class="record-mood">
+          <text class="record-emoji">{{item.mood}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 设置日期模态框 -->
+<view class="date-modal" wx:if="{{showDateModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">设置见面日期</text>
+      <view class="modal-close" bindtap="closeDateModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="input-group">
+        <text class="input-label">选择日期</text>
+        <picker mode="date" 
+                start="{{today}}" 
+                value="{{selectedDate}}" 
+                bindchange="onDateChange">
+          <view class="date-picker">
+            <text class="date-text">{{selectedDate || '请选择日期'}}</text>
+            <text class="picker-arrow">📅</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">选择时间</text>
+        <picker mode="time" 
+                value="{{selectedTime}}" 
+                bindchange="onTimeChange">
+          <view class="time-picker">
+            <text class="time-text">{{selectedTime || '请选择时间'}}</text>
+            <text class="picker-arrow">🕐</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">见面地点</text>
+        <input class="input-field" 
+               placeholder="在哪里见面呢？" 
+               value="{{meetLocation}}" 
+               bindinput="onLocationInput"/>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="closeDateModal">取消</button>
+      <button class="btn-primary" bindtap="confirmDate">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 记录见面模态框 -->
+<view class="record-modal" wx:if="{{showRecordModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">记录这次见面</text>
+      <view class="modal-close" bindtap="closeRecordModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="input-group">
+        <text class="input-label">见面标题</text>
+        <input class="input-field" 
+               placeholder="给这次见面起个标题" 
+               value="{{recordData.title}}" 
+               bindinput="onRecordTitleInput"/>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">见面日期</text>
+        <picker mode="date" 
+                end="{{today}}" 
+                value="{{recordData.date}}" 
+                bindchange="onRecordDateChange">
+          <view class="date-picker">
+            <text class="date-text">{{recordData.date || '请选择日期'}}</text>
+            <text class="picker-arrow">📅</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">见面地点</text>
+        <input class="input-field" 
+               placeholder="在哪里见面的？" 
+               value="{{recordData.location}}" 
+               bindinput="onRecordLocationInput"/>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">相聚天数</text>
+        <input class="input-field" 
+               type="number" 
+               placeholder="相聚了几天？" 
+               value="{{recordData.duration}}" 
+               bindinput="onRecordDurationInput"/>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">心情</text>
+        <view class="mood-selector">
+          <view class="mood-item {{recordData.mood === item ? 'selected' : ''}}" 
+                wx:for="{{moods}}" 
+                wx:key="*this" 
+                bindtap="selectRecordMood" 
+                data-mood="{{item}}">
+            <text class="mood-emoji">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="closeRecordModal">取消</button>
+      <button class="btn-primary" bindtap="saveRecord">保存</button>
+    </view>
+  </view>
+</view>

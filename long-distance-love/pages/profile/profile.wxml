@@ -1,0 +1,263 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 个人信息卡片 -->
+  <view class="profile-card card">
+    <view class="profile-header">
+      <image class="profile-avatar"
+             src="{{userInfo.avatarUrl || ''}}"
+             mode="aspectFill"
+             bindtap="changeAvatar"></image>
+      <view class="profile-info">
+        <text class="profile-name">{{userInfo.nickName || '点击设置昵称'}}</text>
+        <text class="profile-status">{{userInfo.status || '设置个性签名'}}</text>
+      </view>
+      <view class="edit-btn" bindtap="editProfile">
+        <text class="edit-icon">✏️</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 情侣信息卡片 -->
+  <view class="couple-card card">
+    <view class="couple-header">
+      <text class="couple-title">情侣信息</text>
+    </view>
+    <view class="couple-content">
+      <view class="couple-avatars">
+        <view class="avatar-container">
+          <image class="couple-avatar"
+                 src="{{userInfo.avatarUrl || ''}}"
+                 mode="aspectFill"></image>
+          <text class="avatar-label">我</text>
+        </view>
+        <view class="heart-connector">
+          <text class="heart-icon heart-animation">💕</text>
+        </view>
+        <view class="avatar-container">
+          <image class="couple-avatar"
+                 src="{{partnerInfo.avatarUrl || ''}}"
+                 mode="aspectFill"></image>
+          <text class="avatar-label">{{partnerInfo.nickName || 'TA'}}</text>
+        </view>
+      </view>
+      
+      <view class="couple-stats">
+        <view class="stat-row">
+          <text class="stat-label">相爱开始</text>
+          <text class="stat-value">{{relationshipDate || '未设置'}}</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">下次见面</text>
+          <text class="stat-value">{{nextMeetDate || '未设置'}}</text>
+        </view>
+        <view class="stat-row">
+          <text class="stat-label">相爱天数</text>
+          <text class="stat-value primary-color">{{loveDays}} 天</text>
+        </view>
+      </view>
+      
+      <button class="btn-secondary" bindtap="editCoupleInfo">编辑情侣信息</button>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="menu-group card">
+      <view class="menu-item" bindtap="viewStatistics">
+        <view class="menu-icon">📊</view>
+        <text class="menu-text">爱情统计</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="exportData">
+        <view class="menu-icon">📤</view>
+        <text class="menu-text">导出数据</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="importData">
+        <view class="menu-icon">📥</view>
+        <text class="menu-text">导入数据</text>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <view class="menu-group card">
+      <view class="menu-item" bindtap="setReminder">
+        <view class="menu-icon">⏰</view>
+        <text class="menu-text">提醒设置</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="privacySettings">
+        <view class="menu-icon">🔒</view>
+        <text class="menu-text">隐私设置</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="themeSettings">
+        <view class="menu-icon">🎨</view>
+        <text class="menu-text">主题设置</text>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+
+    <view class="menu-group card">
+      <view class="menu-item" bindtap="aboutApp">
+        <view class="menu-icon">ℹ️</view>
+        <text class="menu-text">关于应用</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="feedback">
+        <view class="menu-icon">💬</view>
+        <text class="menu-text">意见反馈</text>
+        <view class="menu-arrow">></view>
+      </view>
+      <view class="menu-item" bindtap="shareApp">
+        <view class="menu-icon">📱</view>
+        <text class="menu-text">分享应用</text>
+        <view class="menu-arrow">></view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑个人信息模态框 -->
+<view class="edit-modal" wx:if="{{showEditModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">编辑个人信息</text>
+      <view class="modal-close" bindtap="closeEditModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="input-group">
+        <text class="input-label">昵称</text>
+        <input class="input-field" 
+               placeholder="请输入昵称" 
+               value="{{editData.nickName}}" 
+               bindinput="onNickNameInput"/>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">个性签名</text>
+        <input class="input-field" 
+               placeholder="写个个性签名吧" 
+               value="{{editData.status}}" 
+               bindinput="onStatusInput"/>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="closeEditModal">取消</button>
+      <button class="btn-primary" bindtap="saveProfile">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑情侣信息模态框 -->
+<view class="couple-modal" wx:if="{{showCoupleModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">编辑情侣信息</text>
+      <view class="modal-close" bindtap="closeCoupleModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="input-group">
+        <text class="input-label">TA的昵称</text>
+        <input class="input-field" 
+               placeholder="请输入TA的昵称" 
+               value="{{coupleData.nickName}}" 
+               bindinput="onPartnerNameInput"/>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">恋爱开始日期</text>
+        <picker mode="date" 
+                end="{{today}}" 
+                value="{{coupleData.startDate}}" 
+                bindchange="onStartDateChange">
+          <view class="date-picker">
+            <text class="date-text">{{coupleData.startDate || '请选择日期'}}</text>
+            <text class="picker-arrow">📅</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">下次见面日期</text>
+        <picker mode="date" 
+                start="{{today}}" 
+                value="{{coupleData.meetDate}}" 
+                bindchange="onMeetDateChange">
+          <view class="date-picker">
+            <text class="date-text">{{coupleData.meetDate || '请选择日期'}}</text>
+            <text class="picker-arrow">📅</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="input-group">
+        <text class="input-label">见面地点</text>
+        <input class="input-field" 
+               placeholder="在哪里见面呢？" 
+               value="{{coupleData.meetLocation}}" 
+               bindinput="onMeetLocationInput"/>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="btn-secondary" bindtap="closeCoupleModal">取消</button>
+      <button class="btn-primary" bindtap="saveCoupleInfo">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 统计信息模态框 -->
+<view class="stats-modal" wx:if="{{showStatsModal}}">
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">爱情统计</text>
+      <view class="modal-close" bindtap="closeStatsModal">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true">
+      <view class="stats-grid">
+        <view class="stats-item">
+          <text class="stats-number primary-color">{{statistics.loveDays}}</text>
+          <text class="stats-label">相爱天数</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-number secondary-color">{{statistics.totalMessages}}</text>
+          <text class="stats-label">聊天消息</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-number primary-color">{{statistics.diaryCount}}</text>
+          <text class="stats-label">日记篇数</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-number secondary-color">{{statistics.photoCount}}</text>
+          <text class="stats-label">照片数量</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-number primary-color">{{statistics.meetCount}}</text>
+          <text class="stats-label">见面次数</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-number secondary-color">{{statistics.totalDays}}</text>
+          <text class="stats-label">异地天数</text>
+        </view>
+      </view>
+      
+      <view class="stats-chart">
+        <text class="chart-title">每月活跃度</text>
+        <view class="chart-placeholder">
+          <text class="chart-text">📈 图表功能开发中...</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

@@ -1,0 +1,15 @@
+这是一个占位文件，用于确保images文件夹存在。
+
+如果您需要添加图标，请将以下文件放入此文件夹：
+- home.png
+- home-active.png
+- chat.png
+- chat-active.png
+- diary.png
+- diary-active.png
+- countdown.png
+- countdown-active.png
+- profile.png
+- profile-active.png
+
+然后在app.json的tabBar配置中添加iconPath和selectedIconPath。
